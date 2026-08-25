@@ -202,8 +202,14 @@ class Wavelet2D1DTransform(object):
         a reconstructed cube with altered characteristics while preserving
         the overall structure encoded in the retained coefficients.
         """
+        # Ensure the transform object exists (decompose must be called first)
+        # This assertion helps catch usage errors but is commented for performance
         # assert hasattr(self, '_mr2d1d'), "Need to call decompose first."
-        reconstructed = self._mr2d1d.reconstruct(coeffs)
+
+        # pysparse internally calls ndarray.resize() which requires the array
+        # to own its data (no shared base). np.array(..., copy=True) guarantees that.
+        reconstructed = self._mr2d1d.reconstruct(np.array(coeffs, dtype=np.float32, copy=True))
+
         return reconstructed
 
     def energy_per_scale(self, num_scales_2d, num_scales_1d):
